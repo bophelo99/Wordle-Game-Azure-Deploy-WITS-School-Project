@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Multiplayer Wordle</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>Multiplayer Wordle</h1>
+    
+    <div id="login">
+        <input type="text" id="username" placeholder="Enter username">
+        <button id="loginButton">Login</button>
+    </div>
+
+    <div id="room-management" style="display: none;">
+        <input type="text" id="roomName" placeholder="Enter room name">
+        <button id="createRoom">Create Room</button>
+        <button id="joinRoom">Join Room</button>
+    </div>
+
+    <div id="game" style="display: none;">
+        <div id="gameContent"></div>
+        <input type="text" id="guessInput" maxlength="5">
+        <button id="submitGuess">Guess</button>
+        <button id="resetGame">Reset</button>
+    </div>
+
+    <script>
+        const socket = io();
+        let currentRoom = null;
+
+        document.getElementById('loginButton').addEventListener('click', () => {
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('room-management').style.display = 'block';
+        });
+
+        document.getElementById('createRoom').addEventListener('click', () => {
+            currentRoom = document.getElementById('roomName').value;
+            socket.emit('create_room', { room: currentRoom });
+        });
+
+        socket.on('room_created', () => {
+            document.getElementById('room-management').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+        });
+
+        document.getElementById('joinRoom').addEventListener('click', () => {
+            currentRoom = document.getElementById('roomName').value;
+            socket.emit('join_room', { room: currentRoom });
+        });
+
+        socket.on('update_game', (gameState) => {
+            document.getElementById('gameContent').innerText = JSON.stringify(gameState.guesses, null, 2);
+        });
+
+        document.getElementById('submitGuess').addEventListener('click', () => {
+            let guess = document.getElementById('guessInput').value.toLowerCase();
+            socket.emit('guess', { room: currentRoom, guess });
+        });
+
+        document.getElementById('resetGame').addEventListener('click', () => {
+            socket.emit('reset', { room: currentRoom });
+        });
+    </script>
+</body>
+</html>
