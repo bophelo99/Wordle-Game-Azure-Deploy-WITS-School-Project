@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Multiplayer Wordle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordle Multiplayer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </head>
 <body>
@@ -25,6 +27,18 @@
         <button id="submitGuess">Guess</button>
         <button id="resetGame">Reset</button>
     </div>
+    <div id="wordle-grid">
+        <div id="current-guess"></div>
+    </div>
+
+    <div id="game-container">
+        <div id="wordle-grid"></div>
+        <div id="keyboard-container">
+          <div class="keyboard-row" id="row-1"></div>
+          <div class="keyboard-row" id="row-2"></div>
+          <div class="keyboard-row" id="row-3"></div>
+        </div>
+      </div>
 
     <script>
         const socket = io();
@@ -62,6 +76,67 @@
         document.getElementById('resetGame').addEventListener('click', () => {
             socket.emit('reset', { room: currentRoom });
         });
+
+        const keyboardLayout = [
+            "QWERTYUIOP",
+            "ASDFGHJKL",
+            "ZXCVBNM",
+        ];
+
+        const generateKeyboard = () => {
+            const keyboardContainer = document.getElementById("keyboard-container");
+
+            keyboardLayout.forEach((row, rowIndex) => {
+                const rowElement = document.getElementById(`row-${rowIndex + 1}`);
+                row.split("").forEach((key) => {
+                    const keyElement = document.createElement("div");
+                    keyElement.classList.add("key");
+                    keyElement.textContent = key;
+                     keyElement.addEventListener("click", () => handleKeyPress(key));
+                     rowElement.appendChild(keyElement);
+                 });
+         });
+
+  // Add Backspace and Enter keys
+            const specialKeysRow = document.getElementById("row-3");
+            const backspaceKey = document.createElement("div");
+            backspaceKey.classList.add("key", "special");
+            backspaceKey.textContent = "Backspace";
+            backspaceKey.addEventListener("click", handleBackspace);
+            specialKeysRow.insertBefore(backspaceKey, specialKeysRow.firstChild);
+
+            const enterKey = document.createElement("div");
+            enterKey.classList.add("key", "special");
+            enterKey.textContent = "Enter";
+            enterKey.addEventListener("click", handleEnter);
+            specialKeysRow.appendChild(enterKey);
+            };
+
+            const handleKeyPress = (key) => {
+            const currentGuess = document.getElementById("current-guess");
+            if (currentGuess.textContent.length < 5) {
+                currentGuess.textContent += key;
+            }
+};
+
+const handleBackspace = () => {
+  const currentGuess = document.getElementById("current-guess");
+  currentGuess.textContent = currentGuess.textContent.slice(0, -1);
+};
+
+const handleEnter = () => {
+  const currentGuess = document.getElementById("current-guess").textContent;
+  if (currentGuess.length === 5) {
+    socket.emit("guess", { guess: currentGuess, room: currentRoom });
+    document.getElementById("current-guess").textContent = ""; // Reset for next guess
+  } else {
+    alert("Word must be 5 letters long.");
+  }
+};
+
+// Call this function when the page loads
+generateKeyboard();
+
     </script>
 </body>
 </html>
