@@ -1,7 +1,14 @@
+"""
+This file contains the server-side code for the multiplayer game. It uses Flask and 
+Flask-SocketIO to handle the game logic and communication between clients. 
+The game is a simple word guessing game where players try to guess a word based on 
+feedback provided by the server. The server maintains the game state for each 
+room and broadcasts updates to all players in the room.
+"""
 
-from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO, emit, join_room, leave_room
 import random
+from flask import Flask, render_template, request, jsonify
+from flask_socketio import SocketIO, emit, join_room #, leave_room
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
